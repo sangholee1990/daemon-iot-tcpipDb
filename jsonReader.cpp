@@ -9,15 +9,16 @@
 
 // 네임스페이스 사용 (편의를 위해)
 using json = nlohmann::json;
-using std::string;
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
 using std::exit;
+using std::string;
 using std::uint16_t;
 using std::uint32_t;
 
-int main() {
+int main()
+{
     // const char* filename = "appConfig.json";
     std::string filename = "appConfig.json";
     // std::string filename = "appConfig2.json";
@@ -35,16 +36,17 @@ int main() {
     printf(">> 설정파일 읽기 : %s\n", filename.c_str());
     std::ifstream configFile(filename);
 
-
     // --- 2. 파일 읽기 및 JSON 파싱 ---
-    if (!configFile.is_open()) {
+    if (!configFile.is_open())
+    {
         fprintf(stderr, "설정 파일읽기 실패 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", filename.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     printf(">> 설정파일 파싱\n");
     json configJson;
-    try {
+    try
+    {
         configJson = json::parse(configFile);
         configFile.close();
 
@@ -56,7 +58,9 @@ int main() {
         SERVICE_PORT = configJson.value("SERVICE_PORT", SERVICE_PORT);
         MAX_CONNECTION_LIMIT = configJson.value("MAX_CONNECTION_LIMIT", MAX_CONNECTION_LIMIT);
         CONNECTION_TIMEOUT = configJson.value("CONNECTION_TIMEOUT", CONNECTION_TIMEOUT);
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception &e)
+    {
         fprintf(stderr, "설정 파일읽기 오류 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", filename.c_str());
         std::exit(EXIT_FAILURE);
     }

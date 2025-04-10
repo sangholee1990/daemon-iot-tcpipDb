@@ -8,11 +8,12 @@
 /*
 	이벤트 정의
 */
-#define MYSQL_EVENTS_CONNECTED		(const char *)"CONNECTED"
-#define MYSQL_EVENTS_DISCONNECTED	(const char *)"DISCONNECTED"
-#define MYSQL_EVENTS_ERROR			(const char *)"ERROR"
+#define MYSQL_EVENTS_CONNECTED (const char *)"CONNECTED"
+#define MYSQL_EVENTS_DISCONNECTED (const char *)"DISCONNECTED"
+#define MYSQL_EVENTS_ERROR (const char *)"ERROR"
 
-struct MYSQL_CONFIG{
+struct MYSQL_CONFIG
+{
 	const char *host;
 	const char *user;
 	const char *password;
@@ -21,7 +22,8 @@ struct MYSQL_CONFIG{
 };
 
 // 데이터 구조체 정의
-struct CONN_LOG{
+struct CONN_LOG
+{
 	int32_t id;
 	char device[45];
 	char eventTime[45];
@@ -29,7 +31,8 @@ struct CONN_LOG{
 	char address[45];
 };
 
-struct INPUT_DATA{
+struct INPUT_DATA
+{
 	char product_serial_number[60];
 	char date_time[30];
 	float temp;
@@ -57,7 +60,8 @@ struct INPUT_DATA{
 	char tmp10[20];
 };
 
-struct FOTA_INFO{
+struct FOTA_INFO
+{
 	int32_t id;
 	int32_t version_major;
 	int32_t version_minor;
@@ -67,7 +71,8 @@ struct FOTA_INFO{
 	char reg_data[30];
 };
 
-struct IOT_FIRM{
+struct IOT_FIRM
+{
 	int32_t id;
 	char type[200];
 	char ver[200];
@@ -77,7 +82,8 @@ struct IOT_FIRM{
 	char reg_date[30];
 };
 
-struct IOT_PRDCT_AUTH{
+struct IOT_PRDCT_AUTH
+{
 	char product_serial_number[63];
 	bool auth_yn;
 	bool use_yn;
@@ -85,7 +91,8 @@ struct IOT_PRDCT_AUTH{
 	char reg_date[30];
 };
 
-struct KEPCO_API_AUTH{
+struct KEPCO_API_AUTH
+{
 	char kepco_api_key[63];
 	bool auth_yn;
 	bool use_yn;
@@ -93,7 +100,8 @@ struct KEPCO_API_AUTH{
 	char reg_date[30];
 };
 
-struct MEMBER{
+struct MEMBER
+{
 	char product_serial_number[63];
 	int32_t customer_link_number;
 	char kepco_api_key[63];
@@ -126,7 +134,8 @@ struct MEMBER{
 	char reg_date[30];
 };
 
-struct MSG_INFO{
+struct MSG_INFO
+{
 	char msg_code[63];
 	char msg_version[20];
 	char msg_cont[2000];
@@ -135,7 +144,8 @@ struct MSG_INFO{
 	char reg_date[30];
 };
 
-struct OUTPUT_DATA{
+struct OUTPUT_DATA
+{
 	uint32_t customer_link_number;
 	char date_time[30];
 	float temp;
@@ -155,7 +165,8 @@ struct OUTPUT_DATA{
 	char reg_date[30];
 };
 
-struct OUTPUT_STAT_DATA{
+struct OUTPUT_STAT_DATA
+{
 	uint32_t customer_link_number;
 	char date_time[30];
 	float prv_pwr;
@@ -174,7 +185,8 @@ struct OUTPUT_STAT_DATA{
 	char reg_date[30];
 };
 
-struct SYS_INFO{
+struct SYS_INFO
+{
 	uint32_t customer_link_number;
 	int32_t pwr_svn_trg;
 	int32_t gas_svn_trg;
@@ -198,7 +210,8 @@ struct SYS_INFO{
 	char tmp10[20];
 };
 
-struct TERMS_COND{
+struct TERMS_COND
+{
 	int32_t customer_link_number;
 	char terms_code[63];
 	char terms_version[20];
@@ -209,12 +222,14 @@ struct TERMS_COND{
 	char reg_date[30];
 };
 
-class MySQLService{
+class MySQLService
+{
 private:
 	MYSQL *conn, *result;
 	MYSQL_CONFIG conf;
 	const char *getDateTime();
 	char DB_NAME[20] = "DMS02";
+
 public:
 	void Init(MYSQL_CONFIG config);
 	/*

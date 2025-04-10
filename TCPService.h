@@ -5,16 +5,19 @@
 #include <string.h>
 #include "Configure.h"
 using namespace std;
-struct SOCKET_INFO{
+struct SOCKET_INFO
+{
 	size_t server_fd;
 	socklen_t sock_len;
 };
-struct SOCKET_INFO_CLIENT{
+struct SOCKET_INFO_CLIENT
+{
 	size_t client_fd;
 	sockaddr_in client_addr;
 };
 
-class TCPService{
+class TCPService
+{
 private:
 public:
 	SOCKET_INFO Init(uint16_t port);
