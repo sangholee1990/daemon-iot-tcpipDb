@@ -1,0 +1,3 @@
+/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/CMakeFiles/SOLARMY_APP.dir
+/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/CMakeFiles/edit_cache.dir
+/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/CMakeFiles/rebuild_cache.dir

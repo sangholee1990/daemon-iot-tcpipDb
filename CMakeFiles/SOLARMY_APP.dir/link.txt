@@ -1,0 +1,1 @@
+/usr/bin/c++  -std=c++11 -rdynamic CMakeFiles/SOLARMY_APP.dir/main.cpp.o CMakeFiles/SOLARMY_APP.dir/MySQLService.cpp.o CMakeFiles/SOLARMY_APP.dir/TCPService.cpp.o -o SOLARMY_APP  -lmysqlclient -lcurl 
