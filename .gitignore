@@ -2,4 +2,4 @@
 /build
 /cmake_install.cmake
 /jsonReader
-/main.cpp
+# /main.cpp
