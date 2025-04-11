@@ -1,4 +1,4 @@
-# /appConfig.json
+/appConfig.json
 /build
 /cmake_install.cmake
 /jsonReader
