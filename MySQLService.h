@@ -4,6 +4,8 @@
 #include <string.h>
 #include <time.h>
 #include "/usr/include/mysql/mysql.h"
+#include <string>
+#include <cstdint>
 
 /*
 	이벤트 정의
@@ -14,10 +16,14 @@
 
 struct MYSQL_CONFIG
 {
-	const char *host;
-	const char *user;
-	const char *password;
-	const char *table;
+	// const char *host;
+	// const char *user;
+	// const char *password;
+	// const char *table;
+	std::string host;
+    std::string user;
+    std::string password;
+    std::string table;
 	uint16_t port;
 };
 

@@ -4,14 +4,16 @@ void MySQLService::Init(MYSQL_CONFIG config)
 {
 	// MySQL 초기화
 	conn = mysql_init((MYSQL *)NULL);
-	result = mysql_real_connect(conn, config.host, config.user, config.password, NULL, config.port, NULL, 0);
+	// result = mysql_real_connect(conn, config.host, config.user, config.password, NULL, config.port, NULL, 0);
+	// result = mysql_real_connect(conn, config.host.c_str(), config.user.c_str(), config.password.c_str(), config.table.c_str(), config.port, NULL, 0);
+	result = mysql_real_connect(conn, config.host.c_str(), config.user.c_str(), config.password.c_str(), NULL, config.port, NULL, 0);
 	if (result == NULL)
 	{
 		printf(">> MySQL 접속실패\n");
 	}
 	else
 	{
-		printf(">> MySQL DB 접속 성공. Host : %s(%d)\n", config.host, config.port);
+		printf(">> MySQL DB 접속 성공. Host : %s(%d)\n", config.host.c_str(), config.port);
 	}
 
 	// config 복사
@@ -749,7 +751,7 @@ int32_t MySQLService::addEvent(const char *device_id, const char *evt_type, cons
 {
 	// 이벤트 추가
 	char query[200] = {0};
-	sprintf(query, "INSERT INTO %s.TB_CONN_LOG VALUES (NULL, '%s', '%s', '%s', '%s');", conf.table, device_id, getDateTime(), evt_type, addr);
+	sprintf(query, "INSERT INTO %s.TB_CONN_LOG VALUES (NULL, '%s', '%s', '%s', '%s');", conf.table.c_str(), device_id, getDateTime(), evt_type, addr);
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{

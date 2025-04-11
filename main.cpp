@@ -4,6 +4,7 @@
 #include "Configure.h"
 #include "MySQLService.h"
 #include "TCPService.h"
+#include "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/nlohmann/json.hpp"
 
 struct MSG
 {
@@ -12,77 +13,116 @@ struct MSG
 	uint8_t payload[255] = {0};
 };
 
+// 네임스페이스
+using json = nlohmann::json;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::exit;
+using std::string;
+using std::uint16_t;
+using std::uint32_t;
+using namespace std;
+
 void *thread_main(void *socket_info);
 void startDaemon();
 const char *getDateTime();
 tm *getDateTimeStruct();
 
 MySQLService DB;
-using namespace std;
+
 MSG parseMsg(uint8_t *data, int32_t data_length);
+
 
 int main(int argc, char **argv)
 {
+	std::string DB_HOST;
+    std::string DB_USER;
+    std::string DB_PASSWD;
+    std::string DB_TABLE;
+    uint16_t DB_PORT;
+    uint16_t SERVICE_PORT;
+    uint32_t MAX_CONNECTION_LIMIT;
+	uint32_t CONNECTION_TIMEOUT;
+	// const char* filename = "./appConfig.json";
+	std::string filename = "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/appConfig.json";
+	// std::string filename = "./appConfig.json";
+
 	std::cout << "***** SOLARMY TCP-DB Agent *****" << std::endl;
-
 	// App Config 파일로부터 설정 파일 읽어옴
-	std::cout << ">> 프로그램 설정 파일을 읽어옵니다" << std::endl;
-	std::ifstream configFile;
-	configFile.open("appConfig.json");
-	string configString;
-	if (configFile.is_open())
-	{
-		while (!configFile.eof())
-		{
-			getline(configFile, configString);
-			cout << configString << endl;
-		}
-	}
-	configFile.close();
+	printf(">> 설정파일 읽기 : %s\n", filename.c_str());
+    std::ifstream configFile(filename);
 
-	const char *DB_HOST = "localhost";
-	const char *DB_USER = "root";
-	const char *DB_PASSWD = "";
-	const char *DB_TABLE = "DMS02";
-	uint16_t DB_PORT = 3306, ServicePort = 9999;
-	uint32_t MAX_CONNECTION_LIMIT = 1000, CONNECTION_TIMEOUT = 200000;
+	  // --- 2. 파일 읽기 및 JSON 파싱 ---
+	  if (!configFile.is_open())
+	  {
+		  fprintf(stderr, "설정 파일읽기 실패 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", filename.c_str());
+		  std::exit(EXIT_FAILURE);
+	  }
+  
+	  printf(">> 설정파일 파싱\n");
+	  json configJson;
+	  try
+	  {
+		  configJson = json::parse(configFile);
+		  configFile.close();
+  
+		  DB_HOST = configJson.value("DB_HOST", DB_HOST);
+		  DB_USER = configJson.value("DB_USER", DB_USER);
+		  DB_PASSWD = configJson.value("DB_PASSWD", DB_PASSWD);
+		  DB_TABLE = configJson.value("DB_TABLE", DB_TABLE);
+		  DB_PORT = configJson.value("DB_PORT", DB_PORT);
+		  SERVICE_PORT = configJson.value("SERVICE_PORT", SERVICE_PORT);
+		  MAX_CONNECTION_LIMIT = configJson.value("MAX_CONNECTION_LIMIT", MAX_CONNECTION_LIMIT);
+		  CONNECTION_TIMEOUT = configJson.value("CONNECTION_TIMEOUT", CONNECTION_TIMEOUT);
+	  }
+	  catch (const std::exception &e)
+	  {
+		  fprintf(stderr, "설정 파일읽기 오류 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", filename.c_str());
+		  std::exit(EXIT_FAILURE);
+	  }
 
-	// 설정 파일 출력
-	std::cout << ">> App Version : " << APP_VER_MAJOR << "." << APP_VER_MINOR << "." << APP_VER_PATCH << endl;
-	std::cout << ">> Maximum Connections : " << MAX_CONNECTION_LIMIT << endl;
-	std::cout << ">> Connection Timeout : " << CONNECTION_TIMEOUT << endl;
-	std::cout << ">> Service Port : " << ServicePort << endl;
+	  printf(">> 설정파일 출력\n");
+	  std::cout << "[CHECK] App Version : " << APP_VER_MAJOR << "." << APP_VER_MINOR << "." << APP_VER_PATCH << endl;
+	  printf("[CHECK] DB_HOST : %s\n", DB_HOST.c_str());
+	  printf("[CHECK] DB_USER : %s\n", DB_USER.c_str());
+	  printf("[CHECK] DB_PASSWD : %s\n", DB_PASSWD.c_str());
+	  printf("[CHECK] DB_TABLE : %s\n", DB_TABLE.c_str());
 
-	// 데몬 시작
-	// startDaemon();
+	  printf("[CHECK] DB_PORT : %u\n", DB_PORT);
+	  printf("[CHECK] SERVICE_PORT : %u\n", SERVICE_PORT);
+	  printf("[CHECK] MAX_CONNECTION_LIMIT : %u\n", MAX_CONNECTION_LIMIT);
+	  printf("[CHECK] CONNECTION_TIMEOUT : %u\n", CONNECTION_TIMEOUT);
 
-	/*
-	 * 		MySQL 라이브러리 초기화
-	 */
-	MYSQL_CONFIG config = {
-		DB_HOST, DB_USER, DB_PASSWD, DB_TABLE, DB_PORT};
-	DB.Init(config);
+	  // 데몬 시작
+	  // startDaemon();
 
-	/*
-	 * 		TCP Service 초기화
-	 */
-	TCPService SERVER;
-	SOCKET_INFO info = SERVER.Init(ServicePort);
+	  /*
+	   * 		MySQL 라이브러리 초기화
+	   */
+	  MYSQL_CONFIG config = {DB_HOST, DB_USER, DB_PASSWD, DB_TABLE, DB_PORT};
+	  DB.Init(config);
 
-	while (true)
-	{
-		// 소켓을 생성한 후 클라이언트 연결을 대기한다.
-		SOCKET_INFO_CLIENT client_info = SERVER.Listen(info.server_fd, info.sock_len);
+	  /*
+	   * 		TCP Service 초기화
+	   */
+	  TCPService SERVER;
+	  SOCKET_INFO info = SERVER.Init(SERVICE_PORT);
 
-		// 클라이언트가 Accept 되면 쓰레드 생성 후 분리한다.
-		pthread_t threads;
-		SOCKET_INFO_CLIENT *socket_info;
-		socket_info = (SOCKET_INFO_CLIENT *)malloc(sizeof(SOCKET_INFO_CLIENT));
-		socket_info->client_fd = client_info.client_fd;
-		socket_info->client_addr = client_info.client_addr;
-		pthread_create(&threads, NULL, thread_main, (void *)socket_info);
-		pthread_detach(threads); // Thread 분리
-	}
+	  while (true)
+	  {
+		  // 소켓을 생성한 후 클라이언트 연결을 대기한다.
+		  SOCKET_INFO_CLIENT client_info = SERVER.Listen(info.server_fd, info.sock_len);
+
+		  // 클라이언트가 Accept 되면 쓰레드 생성 후 분리한다.
+		  pthread_t threads;
+		  SOCKET_INFO_CLIENT *socket_info;
+		  socket_info = (SOCKET_INFO_CLIENT *)malloc(sizeof(SOCKET_INFO_CLIENT));
+		  socket_info->client_fd = client_info.client_fd;
+		  socket_info->client_addr = client_info.client_addr;
+		  pthread_create(&threads, NULL, thread_main, (void *)socket_info);
+		  pthread_detach(threads); // Thread 분리
+	  }
 
 	return 0;
 }
@@ -166,14 +206,13 @@ void *thread_main(void *socket_info)
 		msg.msg_length = recv_buffer[3];
 
 		// Payload Length 검사
-		if (msg.msg_length < 1 || msg.msg_length == '0')
-		{
-			sprintf((char *)write_buffer, "msg_length 실패\r\n");
-			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
-			printf("msg_length 실패\n");
-			// break;
-			continue;
-		}
+		// if (msg.msg_length < 1 || msg.msg_length == '0')
+		// {
+		// 	// sprintf((char *)write_buffer, "msg_length 실패\r\n");
+		// 	// TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
+		// 	// printf("msg_length 실패\n");
+		// 	// continue;
+		// }
 
 		// Payload Length가 0이상일 때 payload 배열에 복사
 		memcpy(msg.payload, &recv_buffer[4], msg.msg_length);
@@ -199,7 +238,7 @@ void *thread_main(void *socket_info)
 		size_t offset = 0;
 
 		// printf("[START] msg.msg_id : %s\n", msg.msg_id);
-		// printf("[START] msg.msg_id : %u\n", msg.msg_id);
+		// printf("[START] msg.msg_id : %02X\n", msg.msg_id);
 
 		switch (msg.msg_id)
 		{
@@ -240,6 +279,8 @@ void *thread_main(void *socket_info)
 
 			// 메시지 리턴
 			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, write_buffer[3] + 4);
+			printf("[CHECK] dateTime : %d-%02d-%02d %02d:%02d:%02d\n", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
+
 			break;
 		case CTRL_REQUEST_INPUT_DATA:
 			memset(&inputData, 0x00, sizeof(inputData));
