@@ -767,9 +767,16 @@ int32_t MySQLService::addInputData(uint16_t years, INPUT_DATA inputData)
 			inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
 
 	int32_t status = mysql_query(conn, query);
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	
 	if (status != 0)
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
+	}
+
+	if (status == 0 && statusDtl < 1)
+	{
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	return status;

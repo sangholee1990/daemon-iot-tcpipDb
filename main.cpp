@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	uint16_t SERVICE_PORT;
 	uint32_t MAX_CONNECTION_LIMIT;
 	uint32_t CONNECTION_TIMEOUT;
-	
+
 	// const char* filename = "./appConfig.json";
 	// std::string fileInfo = "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/appConfig.json";
 	std::string fileInfo = std::string(PRJ_PATH) + "/appConfig.json";
@@ -160,7 +160,8 @@ void *thread_main(void *socket_info)
 
 	// 연결 시 업데이트
 	DB.addEvent("ID_TEST", MYSQL_EVENTS_CONNECTED, inet_ntoa(client_info->client_addr.sin_addr));
-	spdlog::info("[CHECK] Client Connected. IP Address : {}", inet_ntoa(client_info->client_addr.sin_addr));
+	// spdlog::info("[CHECK] Client Connected. IP Address : {}", inet_ntoa(client_info->client_addr.sin_addr));
+	spdlog::info("[{}][{}] Client Connected.", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr));
 
 	// 데이터 구조체 정의
 	INPUT_DATA inputData;
@@ -189,7 +190,8 @@ void *thread_main(void *socket_info)
 		if (recv_length == 0)
 		{
 			// cout << ">> Client에서 연결 해제 요청" << endl;
-			spdlog::info("[CHECK] Client에서 연결 해제 요청");
+			// spdlog::info("[CHECK] Client에서 연결 해제 요청");
+			spdlog::info("[{}][{}] Client에서 연결 해제 요청", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr));
 			break;
 		}
 
@@ -197,7 +199,8 @@ void *thread_main(void *socket_info)
 		if (recv_length == -1)
 		{
 			// cout << getDateTime() << " : TCP Timeout!" << endl;
-			spdlog::info("[CHECK] TCP Timeout");
+			// spdlog::info("[CHECK] TCP Timeout");
+			spdlog::info("[{}][{}] TCP Timeout", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr));
 			break;
 		}
 
@@ -210,7 +213,8 @@ void *thread_main(void *socket_info)
 		// 명령 수신 후 파싱 검사
 		if (recv_buffer[0] != 0xFF)
 		{
-			spdlog::info("[CHECK] SoF 실패");
+			// spdlog::info("[CHECK] SoF 실패");
+			spdlog::info("[{}][{}] SoF 실패", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr));
 			sprintf((char *)write_buffer, "SoF 실패\r\n");
 			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
 			// printf("SoF 실패\n");
@@ -220,7 +224,8 @@ void *thread_main(void *socket_info)
 
 		msg = parseMsg(recv_buffer, recv_length);
 		// printf("MSG ID(%s) : %02X length %d\r\n", inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
-		spdlog::info("[CHECK] MSG ID ({}) : {:02X} length {}", inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
+		// spdlog::info("[CHECK] MSG ID ({}) : {:02X} length {}", inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
+		spdlog::info("[{}][{}][{}][{}]", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
 
 		// Msg length
 		msg.msg_length = recv_buffer[3];
@@ -248,7 +253,8 @@ void *thread_main(void *socket_info)
 		// 	printf("%02X", msg.payload[i]);
 		// }
 		// printf("\n");
-		spdlog::info("[CHECK] Header Payload : {} {}", toHex(recv_buffer, 4), toHex(msg.payload, msg.msg_length));
+		// spdlog::info("[CHECK] Header Payload : {} {}", toHex(recv_buffer, 4), toHex(msg.payload, msg.msg_length));
+		spdlog::info("[{}][{}][{}][{}] Header Payload : {} {}", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length, toHex(recv_buffer, 4), toHex(msg.payload, msg.msg_length));
 
 		// 서버 날짜/시간을 받아옴
 		tm *dateTime = getDateTimeStruct();
@@ -293,7 +299,8 @@ void *thread_main(void *socket_info)
 			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, write_buffer[3] + 4);
 			// printf("[CHECK] dateTime : %d-%02d-%02d %02d:%02d:%02d\n", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
 
-			spdlog::info("[CHECK] dateTime : {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
+			// spdlog::info("[CHECK] dateTime : {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
+			spdlog::info("[{}][{}][{}][{}] result : {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length, dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
 
 			break;
 		// ******************************************
@@ -478,65 +485,45 @@ void *thread_main(void *socket_info)
 			offset = 70;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.temp, &tmpInt, 4);
-			// printf("[CHECK] inputData.temp : %.1f\n", inputData.temp);
 
 			offset += 4;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.hmdty, &tmpInt, 4);
-			// printf("[CHECK] inputData.hmdty : %.1f\n", inputData.hmdty);
 
-			// inputData.pm25 = 0;
 			offset += 4;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.pm25, &tmpInt, 4);
-			// printf("[CHECK] inputData.pm25 : %.1f\n", inputData.pm25);
 
-			// inputData.pm10 = 0;
 			offset += 4;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.pm10, &tmpInt, 4);
-			// printf("[CHECK] inputData.pm10 : %.1f\n", inputData.pm10);
 
-			// strcpy(inputData.mvmnt, "TEST");
 			offset += 4;
 			memcpy(inputData.mvmnt, &msg.payload[offset], 20);
-			// printf("[CHECK] inputData.mvmnt : %s\n", inputData.mvmnt);
 
-			// inputData.tvoc = 0;
 			offset += 20;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.tvoc, &tmpInt, 4);
-			// printf("[CHECK] inputData.tvoc : %.1f\n", inputData.tvoc);
 
-			// inputData.hcho = 0;
 			offset += 4;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.hcho, &tmpInt, 4);
-			// printf("[CHECK] inputData.hcho : %.1f\n", inputData.hcho);
 
-			// inputData.co2 = 0;
 			offset += 4;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.co2, &tmpInt, 4);
-			// printf("[CHECK] inputData.co2 : %.1f\n", inputData.co2);
 
-			// inputData.co = 0;
 			offset += 4;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.co, &tmpInt, 4);
-			// printf("[CHECK] inputData.co : %.1f\n", inputData.co);
 
-			// inputData.benzo = 0;
 			offset += 4;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.benzo, &tmpInt, 4);
-			// printf("[CHECK] inputData.benzo : %.1f\n", inputData.benzo);
 
-			// inputData.radon = 0;
 			offset += 4;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.radon, &tmpInt, 4);
-			// printf("[CHECK] inputData.radon : %.1f\n", inputData.radon);
 
 			inputData.tmp = 0;
 			inputData.tmp2 = 0;
@@ -550,24 +537,19 @@ void *thread_main(void *socket_info)
 			strcpy(inputData.tmp10, "");
 
 			// printf("[CHECK] product_serial_number=%s, date_time=%s, temp=%.1f, hmdty=%.1f, pm25=%.1f, pm10=%.1f, mvmnt=%s, tvoc=%.1f, hcho=%.1f, co2=%.1f, co=%.1f, benzo=%.1f, radon=%.1f, mod_date=%s, reg_date=%s, tmp=%.1f, tmp2=%.1f, tmp3=%.1f, tmp4=%.1f, tmp5=%.1f, tmp6=%s, tmp7=%s, tmp8=%s, tmp9=%s, tmp10=%s\n", inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
-			spdlog::info("[CHECK] product_serial_number={}, date_time={}, temp={:.1f}, hmdty={:.1f}, pm25={:.1f}, pm10={:.1f}, mvmnt={}, tvoc={:.1f}, hcho={:.1f}, co2={:.1f}, co={:.1f}, benzo={:.1f}, radon={:.1f}, mod_date={}, reg_date={}, tmp={:.1f}, tmp2={:.1f}, tmp3={:.1f}, tmp4={:.1f}, tmp5={:.1f}, tmp6={}, tmp7={}, tmp8={}, tmp9={}, tmp10={}", inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
+			// spdlog::info("[CHECK] product_serial_number={}, date_time={}, temp={:.1f}, hmdty={:.1f}, pm25={:.1f}, pm10={:.1f}, mvmnt={}, tvoc={:.1f}, hcho={:.1f}, co2={:.1f}, co={:.1f}, benzo={:.1f}, radon={:.1f}, mod_date={}, reg_date={}, tmp={:.1f}, tmp2={:.1f}, tmp3={:.1f}, tmp4={:.1f}, tmp5={:.1f}, tmp6={}, tmp7={}, tmp8={}, tmp9={}, tmp10={}", inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
+
+			spdlog::info("[{}][{}][{}][{}] product_serial_number={}, date_time={}, temp={:.1f}, hmdty={:.1f}, pm25={:.1f}, pm10={:.1f}, mvmnt={}, tvoc={:.1f}, hcho={:.1f}, co2={:.1f}, co={:.1f}, benzo={:.1f}, radon={:.1f}, mod_date={}, reg_date={}, tmp={:.1f}, tmp2={:.1f}, tmp3={:.1f}, tmp4={:.1f}, tmp5={:.1f}, tmp6={}, tmp7={}, tmp8={}, tmp9={}, tmp10={}", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length, inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
 
 			// results = DB.addInputData(years, outputData);
 			results = DB.addInputData(years, inputData);
-			spdlog::info("[CHECK] results : {}", results);
+			// spdlog::info("[CHECK] results : {}", results);
+			spdlog::info("[{}][{}][{}][{}] results : {}", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length, results);
 
 			char tempOutputInput[10];
-			if (results == 0)
-			{
-				strcpy(tempOutputInput, "200");
-			}
-			else if (results == 1)
-			{
-				// 업데이트 실패
-				strcpy(tempOutputInput, "400");
-			}
-
+			strcpy(tempOutputInput, (results == 0) ? "200" : "400");
 			TCPClient.write(client_info->client_fd, (uint8_t *)tempOutputInput, strlen((char *)tempOutputInput));
+						
 			break;
 		case CTRL_CREATE_MEMBER:
 			memset(&member, 0x00, sizeof(member));
@@ -863,7 +845,8 @@ void *thread_main(void *socket_info)
 
 	// 연결 해제 시 업데이트
 	DB.addEvent("ID_TEST", MYSQL_EVENTS_DISCONNECTED, inet_ntoa(client_info->client_addr.sin_addr));
-	spdlog::info("[CHECK] Disconnected. IP Address : {}", inet_ntoa(client_info->client_addr.sin_addr));
+	// spdlog::info("[CHECK] Disconnected. IP Address : {}", inet_ntoa(client_info->client_addr.sin_addr));
+	spdlog::info("[{}][{}] Disconnected. IP Address", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr));
 
 	// Client FD 닫음
 	if (client_info->client_fd > 0)
