@@ -750,10 +750,12 @@ int32_t MySQLService::addEvent(const char *device_id, const char *evt_type, cons
 	sprintf(query, "INSERT INTO %s.TB_CONN_LOG VALUES (NULL, '%s', '%s', '%s', '%s');", conf.table.c_str(), device_id, getDateTime(), evt_type, addr);
 
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
+
 	return status;
 }
 
@@ -768,13 +770,7 @@ int32_t MySQLService::addInputData(uint16_t years, INPUT_DATA inputData)
 
 	int32_t status = mysql_query(conn, query);
 	my_ulonglong statusDtl = mysql_affected_rows(conn);
-	
-	if (status != 0)
-	{
-		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
-	}
-
-	if (status == 0 && statusDtl < 1)
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
 		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
@@ -786,11 +782,14 @@ int32_t MySQLService::addIotFirm(IOT_FIRM iotFirm)
 {
 	char query[1200] = {0};
 	sprintf(query, "INSERT INTO %s.TB_IOT_FIRM VALUES (NULL, '%s', '%s', '%s', '%s', '%s', '%s')", DB_NAME, iotFirm.type, iotFirm.ver, iotFirm.host, iotFirm.port, iotFirm.bin, getDateTime());
+	
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
+
 	return status;
 }
 
@@ -798,11 +797,14 @@ int32_t MySQLService::addIotPrdctAuth(IOT_PRDCT_AUTH iotPrdctAuth)
 {
 	char query[200] = {0};
 	sprintf(query, "INSERT INTO %s.TB_IOT_PRDCT_AUTH VALUES ('%s', %d, %d, '%s', '%s')", DB_NAME, iotPrdctAuth.product_serial_number, iotPrdctAuth.auth_yn, iotPrdctAuth.use_yn, getDateTime(), getDateTime());
+	
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
+
 	return status;
 }
 
@@ -810,11 +812,14 @@ int32_t MySQLService::addKepcoApiAuth(KEPCO_API_AUTH kepcoApiAuth)
 {
 	char query[200] = {0};
 	sprintf(query, "INSERT INTO %s.TB_KEPCO_API_AUTH VALUES ('%s', %d, %d, '%s', '%s')", DB_NAME, kepcoApiAuth.kepco_api_key, kepcoApiAuth.auth_yn, kepcoApiAuth.use_yn, getDateTime(), getDateTime());
+	
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
+
 	return status;
 }
 
@@ -825,11 +830,15 @@ int32_t MySQLService::addMember(MEMBER member)
 			member.product_serial_number, member.customer_link_number, member.kepco_api_key, member.sns_id, member.sns_pwd, member.sns_key, member.sns_type, member.user_name, member.phone_number, member.zip_number, member.addr, member.addr_dtl,
 			member.lon, member.lat, member.house_area, member.male_cnt, member.female_cnt, member.room_cnt, member.tv_cnt, member.air_conditioner_cnt, member.washing_machine_cnt,
 			member.dryer_cnt, member.rice_cooker_cnt, member.fan_cnt, member.disk_washer_cnt, member.computer_cnt, member.rate_plan, member.use_yn ? "Y" : "N", getDateTime(), getDateTime());
+
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
+
+
 	return status;
 }
 
@@ -837,25 +846,31 @@ int32_t MySQLService::addMsgInfo(MSG_INFO msgInfo)
 {
 	char query[2196] = {0};
 	sprintf(query, "SET foreign_key_checks = 0");
+	
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	memset(query, 0x00, sizeof(query));
 	sprintf(query, "INSERT INTO %s.TB_MSG_INFO VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", DB_NAME, msgInfo.msg_code, msgInfo.msg_version, msgInfo.msg_cont, msgInfo.use_yn ? "Y" : "N", getDateTime(), getDateTime());
+	
 	status = mysql_query(conn, query);
-	if (status != 0)
+	statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	sprintf(query, "SET foreign_key_checks = 1");
+
 	status = mysql_query(conn, query);
-	if (status != 0)
+	statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -866,28 +881,34 @@ int32_t MySQLService::addOutputData(uint16_t years, OUTPUT_DATA outputData)
 {
 	char query[300] = {0};
 	sprintf(query, "SET foreign_key_checks = 0");
+	
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	memset(query, 0x00, sizeof(query));
 	sprintf(query, "INSERT INTO %s.TB_OUTPUT_DATA_%d VALUES (%d, '%s', %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, '%s', '%s', '%s')", DB_NAME, years,
 			outputData.customer_link_number, outputData.date_time, outputData.temp, outputData.hmdty, outputData.pm25, outputData.pm10,
 			outputData.dust, outputData.co2, outputData.pwr, outputData.gas, outputData.water, outputData.prd_pwr, outputData.prd_gas, outputData.prd_water, outputData.vis_sync, outputData.mod_date, outputData.reg_date);
+	
 	status = mysql_query(conn, query);
-	if (status != 0)
+	statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	memset(query, 0x00, sizeof(query));
 	sprintf(query, "SET foreign_key_checks = 1");
+
 	status = mysql_query(conn, query);
-	if (status != 0)
+	statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -898,28 +919,34 @@ int32_t MySQLService::addOutputStatData(uint16_t years, OUTPUT_STAT_DATA outputS
 {
 	char query[300] = {0};
 	sprintf(query, "SET foreign_key_checks = 0");
+	
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	memset(query, 0x00, sizeof(query));
 	sprintf(query, "INSERT INTO %s.TB_OUTPUT_STAT_DATA_%d VALUES (%d, '%s', %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, '%s', '%s')", DB_NAME, years,
 			outputStatData.customer_link_number, outputStatData.date_time, outputStatData.prv_pwr, outputStatData.prv_gas, outputStatData.prv_water, outputStatData.prd_prv_pwr, outputStatData.prd_prv_gas, outputStatData.prd_prv_water,
 			outputStatData.pre_pwr, outputStatData.pre_gas, outputStatData.pre_water, outputStatData.prd_pre_pwr, outputStatData.prd_pre_gas, outputStatData.prd_pre_water, outputStatData.mod_date, outputStatData.reg_date);
+	
 	status = mysql_query(conn, query);
-	if (status != 0)
+	statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	memset(query, 0x00, sizeof(query));
 	sprintf(query, "SET foreign_key_checks = 1");
+	
 	status = mysql_query(conn, query);
-	if (status != 0)
+	statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -932,12 +959,13 @@ int32_t MySQLService::addSysInfo(SYS_INFO sysInfo)
 	sprintf(query, "INSERT INTO %s.TB_SYS_INFO VALUES (%d, %d, %d, %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', %f, %f, %f, %f, %f, '%s', '%s', '%s', '%s', '%s')", DB_NAME,
 			sysInfo.customer_link_number, sysInfo.pwr_svn_trg, sysInfo.gas_svn_trg, sysInfo.wtr_svn_trg, sysInfo.alarm_use_yn ? "Y" : "N", sysInfo.alarm_sound_yn ? "Y" : "N", sysInfo.alarm_vbrtn_yn ? "Y" : "N", sysInfo.alarm_optm_yn ? "Y" : "N", sysInfo.use_yn ? "Y" : "N",
 			sysInfo.reg_date, sysInfo.mod_date, sysInfo.tmp, sysInfo.tmp2, sysInfo.tmp3, sysInfo.tmp4, sysInfo.tmp5, sysInfo.tmp6, sysInfo.tmp7, sysInfo.tmp8, sysInfo.tmp9, sysInfo.tmp10);
+	
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
-
 	return status;
 }
 
@@ -945,10 +973,12 @@ int32_t MySQLService::addTermsCond(TERMS_COND termsCond)
 {
 	char query[400] = {0};
 	sprintf(query, "INSERT INTO %s.TB_TERMS_COND VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s')", DB_NAME, termsCond.customer_link_number, termsCond.terms_code, termsCond.terms_version, termsCond.terms_cont, termsCond.agrtr_cndtn_yn, termsCond.use_yn ? "Y" : "N", termsCond.mod_date, termsCond.reg_date);
+	
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	printf("%d : %s\n", status, query);
@@ -959,10 +989,12 @@ int32_t MySQLService::addFotaInfo()
 {
 	char query[200] = {0};
 	sprintf(query, "INSERT INTO %s.TB_MEMBER VALUES ()", DB_NAME);
+
 	int32_t status = mysql_query(conn, query);
-	if (status != 0)
+	my_ulonglong statusDtl = mysql_affected_rows(conn);
+	if ((status != 0) || (status == 0 && statusDtl < 1))
 	{
-		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {} : {} : {}", mysql_error(conn), status, statusDtl, query);
 	}
 
 	return status;
