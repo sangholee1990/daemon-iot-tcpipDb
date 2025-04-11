@@ -4,17 +4,13 @@ void MySQLService::Init(MYSQL_CONFIG config)
 {
 	// MySQL 초기화
 	conn = mysql_init((MYSQL *)NULL);
-	// result = mysql_real_connect(conn, config.host, config.user, config.password, NULL, config.port, NULL, 0);
-	// result = mysql_real_connect(conn, config.host.c_str(), config.user.c_str(), config.password.c_str(), config.table.c_str(), config.port, NULL, 0);
 	result = mysql_real_connect(conn, config.host.c_str(), config.user.c_str(), config.password.c_str(), NULL, config.port, NULL, 0);
-	if (result == NULL)
-	{
-		printf(">> MySQL 접속실패\n");
+	if (result == nullptr) {
+		spdlog::error("DB 접속 실패 : 비정상 종료");
+		std::exit(EXIT_FAILURE);
 	}
-	else
-	{
-		printf(">> MySQL DB 접속 성공. Host : %s(%d)\n", config.host.c_str(), config.port);
-	}
+
+	spdlog::info("[CHECK] DB 접속 성공 : {} ({})", config.host, config.port);
 
 	// config 복사
 	memcpy(&conf, &config, sizeof(config));
@@ -752,10 +748,11 @@ int32_t MySQLService::addEvent(const char *device_id, const char *evt_type, cons
 	// 이벤트 추가
 	char query[200] = {0};
 	sprintf(query, "INSERT INTO %s.TB_CONN_LOG VALUES (NULL, '%s', '%s', '%s', '%s');", conf.table.c_str(), device_id, getDateTime(), evt_type, addr);
+
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s\n", mysql_error(conn));
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 	return status;
 }
@@ -772,7 +769,7 @@ int32_t MySQLService::addInputData(uint16_t years, INPUT_DATA inputData)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	return status;
@@ -785,7 +782,7 @@ int32_t MySQLService::addIotFirm(IOT_FIRM iotFirm)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 	return status;
 }
@@ -797,7 +794,7 @@ int32_t MySQLService::addIotPrdctAuth(IOT_PRDCT_AUTH iotPrdctAuth)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 	return status;
 }
@@ -809,7 +806,7 @@ int32_t MySQLService::addKepcoApiAuth(KEPCO_API_AUTH kepcoApiAuth)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 	return status;
 }
@@ -824,7 +821,7 @@ int32_t MySQLService::addMember(MEMBER member)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 	return status;
 }
@@ -836,7 +833,7 @@ int32_t MySQLService::addMsgInfo(MSG_INFO msgInfo)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -844,14 +841,14 @@ int32_t MySQLService::addMsgInfo(MSG_INFO msgInfo)
 	status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	sprintf(query, "SET foreign_key_checks = 1");
 	status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -865,7 +862,7 @@ int32_t MySQLService::addOutputData(uint16_t years, OUTPUT_DATA outputData)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -875,7 +872,7 @@ int32_t MySQLService::addOutputData(uint16_t years, OUTPUT_DATA outputData)
 	status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -883,7 +880,7 @@ int32_t MySQLService::addOutputData(uint16_t years, OUTPUT_DATA outputData)
 	status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -897,7 +894,7 @@ int32_t MySQLService::addOutputStatData(uint16_t years, OUTPUT_STAT_DATA outputS
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -907,7 +904,7 @@ int32_t MySQLService::addOutputStatData(uint16_t years, OUTPUT_STAT_DATA outputS
 	status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -915,7 +912,7 @@ int32_t MySQLService::addOutputStatData(uint16_t years, OUTPUT_STAT_DATA outputS
 	status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	memset(query, 0x00, sizeof(query));
@@ -931,7 +928,7 @@ int32_t MySQLService::addSysInfo(SYS_INFO sysInfo)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	return status;
@@ -944,7 +941,7 @@ int32_t MySQLService::addTermsCond(TERMS_COND termsCond)
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	printf("%d : %s\n", status, query);
@@ -958,7 +955,7 @@ int32_t MySQLService::addFotaInfo()
 	int32_t status = mysql_query(conn, query);
 	if (status != 0)
 	{
-		fprintf(stderr, "[ERROR] DB 실패 : %s : %s\n", mysql_error(conn), query);
+		spdlog::error("DB 실패 : {} : {}", mysql_error(conn), query);
 	}
 
 	return status;

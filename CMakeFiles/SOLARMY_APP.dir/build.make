@@ -125,6 +125,7 @@ SOLARMY_APP: CMakeFiles/SOLARMY_APP.dir/MySQLService.cpp.o
 SOLARMY_APP: CMakeFiles/SOLARMY_APP.dir/TCPService.cpp.o
 SOLARMY_APP: CMakeFiles/SOLARMY_APP.dir/build.make
 SOLARMY_APP: /usr/lib64/libcurl.so
+SOLARMY_APP: /usr/local/lib64/libspdlog.a
 SOLARMY_APP: CMakeFiles/SOLARMY_APP.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable SOLARMY_APP"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/SOLARMY_APP.dir/link.txt --verbose=$(VERBOSE)

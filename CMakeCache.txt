@@ -260,6 +260,9 @@ pkgcfg_lib_MySQL_mysqlclient:FILEPATH=/usr/lib64/mysql/libmysqlclient.so
 //Path to a library.
 pkgcfg_lib_PC_CURL_curl:FILEPATH=/usr/lib64/libcurl.so
 
+//The directory containing a CMake configuration file for spdlog.
+spdlog_DIR:PATH=/usr/local/lib64/cmake/spdlog
+
 
 ########################
 # INTERNAL cache entries

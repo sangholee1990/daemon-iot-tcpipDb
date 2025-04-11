@@ -6,6 +6,7 @@
 #include "/usr/include/mysql/mysql.h"
 #include <string>
 #include <cstdint>
+#include "spdlog/spdlog.h"
 
 /*
 	이벤트 정의

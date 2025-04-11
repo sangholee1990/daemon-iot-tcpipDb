@@ -5,13 +5,15 @@
 #include <fstream>
 #include <string>
 #include <cstdio>
-// #include <nlohmann/json.hpp>
-#include "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/nlohmann/json.hpp"
+// #include "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/nlohmann/json.hpp"
+#include "nlohmann/json.hpp"
 #include <unistd.h>
 #include <limits.h>
 #include <cstdio>
 #include <iostream>
 #include <string>
+// #include "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/spdlog/include/spdlog/spdlog.h"
+#include "spdlog/spdlog.h" 
 
 // 네임스페이스 사용 (편의를 위해)
 using json = nlohmann::json;
@@ -29,6 +31,11 @@ int main()
     char cwd[PATH_MAX];
     getcwd(cwd, sizeof(cwd));
     printf("[CHECK] cwd : %s\n", cwd);
+
+    // spdlog::info("spdlog에 오신 것을 환영합니다!");
+    // spdlog::error("이것은 에러 메시지입니다!");
+    // spdlog::warn("이것은 경고 메시지입니다.");
+    spdlog::info("[CHECK] cwd : {}", cwd);
 
 
     // TEST_PATH

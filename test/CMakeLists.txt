@@ -12,5 +12,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC /SYSTEMS/IOT/Roverdyn/PR
 
 target_link_libraries(${CMAKE_PROJECT_NAME})
 
+find_package(spdlog REQUIRED)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE spdlog::spdlog)
+
 set(PRJ_PATH "/HDD/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB")
 add_definitions(-DPRJ_PATH=\"${PRJ_PATH}\")

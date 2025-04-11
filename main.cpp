@@ -6,7 +6,11 @@
 #include "Configure.h"
 #include "MySQLService.h"
 #include "TCPService.h"
-#include "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/nlohmann/json.hpp"
+// #include "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/nlohmann/json.hpp"
+#include "nlohmann/json.hpp"
+#include "spdlog/spdlog.h"
+#include <sstream>
+#include <iomanip>
 
 struct MSG
 {
@@ -35,96 +39,105 @@ MySQLService DB;
 
 MSG parseMsg(uint8_t *data, int32_t data_length);
 
-
+std::string toHex(const uint8_t *data, int len)
+{
+	std::ostringstream oss;
+	for (int i = 0; i < len; ++i)
+	{
+		oss << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+			<< static_cast<int>(data[i]);
+	}
+	return oss.str();
+}
 int main(int argc, char **argv)
 {
 	std::string DB_HOST;
-    std::string DB_USER;
-    std::string DB_PASSWD;
-    std::string DB_TABLE;
-    uint16_t DB_PORT;
-    uint16_t SERVICE_PORT;
-    uint32_t MAX_CONNECTION_LIMIT;
+	std::string DB_USER;
+	std::string DB_PASSWD;
+	std::string DB_TABLE;
+	uint16_t DB_PORT;
+	uint16_t SERVICE_PORT;
+	uint32_t MAX_CONNECTION_LIMIT;
 	uint32_t CONNECTION_TIMEOUT;
 	// const char* filename = "./appConfig.json";
 	// std::string fileInfo = "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/appConfig.json";
 	std::string fileInfo = std::string(PRJ_PATH) + "/appConfig.json";
 
-	std::cout << "***** SOLARMY TCP-DB Agent *****" << std::endl;
-	// App Config 파일로부터 설정 파일 읽어옴
-	printf(">> 설정파일 읽기 : %s\n", fileInfo.c_str());
-    std::ifstream configFile(fileInfo);
+	spdlog::info("***** SOLARMY TCP-DB Agent *****");
+	std::ifstream configFile(fileInfo);
+	spdlog::info("설정파일 읽기 : {}", fileInfo);
 
-	  // --- 2. 파일 읽기 및 JSON 파싱 ---
-	  if (!configFile.is_open())
-	  {
-		  fprintf(stderr, "설정 파일읽기 실패 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", fileInfo.c_str());
-		  std::exit(EXIT_FAILURE);
-	  }
-  
-	  printf(">> 설정파일 파싱\n");
-	  json configJson;
-	  try
-	  {
-		  configJson = json::parse(configFile);
-		  configFile.close();
-  
-		  DB_HOST = configJson.value("DB_HOST", DB_HOST);
-		  DB_USER = configJson.value("DB_USER", DB_USER);
-		  DB_PASSWD = configJson.value("DB_PASSWD", DB_PASSWD);
-		  DB_TABLE = configJson.value("DB_TABLE", DB_TABLE);
-		  DB_PORT = configJson.value("DB_PORT", DB_PORT);
-		  SERVICE_PORT = configJson.value("SERVICE_PORT", SERVICE_PORT);
-		  MAX_CONNECTION_LIMIT = configJson.value("MAX_CONNECTION_LIMIT", MAX_CONNECTION_LIMIT);
-		  CONNECTION_TIMEOUT = configJson.value("CONNECTION_TIMEOUT", CONNECTION_TIMEOUT);
-	  }
-	  catch (const std::exception &e)
-	  {
-		  fprintf(stderr, "설정 파일읽기 오류 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", fileInfo.c_str());
-		  std::exit(EXIT_FAILURE);
-	  }
+	// --- 2. 파일 읽기 및 JSON 파싱 ---
+	if (!configFile.is_open())
+	{
+		// fprintf(stderr, "설정 파일읽기 실패 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", fileInfo.c_str());
+		spdlog::error("설정파일 읽기 실패 : {} : 비정상 종료", fileInfo);
+		std::exit(EXIT_FAILURE);
+	}
 
-	  printf(">> 설정파일 출력\n");
-	  std::cout << "[CHECK] App Version : " << APP_VER_MAJOR << "." << APP_VER_MINOR << "." << APP_VER_PATCH << endl;
-	  printf("[CHECK] DB_HOST : %s\n", DB_HOST.c_str());
-	  printf("[CHECK] DB_USER : %s\n", DB_USER.c_str());
-	  printf("[CHECK] DB_PASSWD : %s\n", DB_PASSWD.c_str());
-	  printf("[CHECK] DB_TABLE : %s\n", DB_TABLE.c_str());
+	//   printf(">> 설정파일 파싱\n");
+	json configJson;
+	try
+	{
+		configJson = json::parse(configFile);
+		configFile.close();
+		DB_HOST = configJson.value("DB_HOST", DB_HOST);
+		DB_USER = configJson.value("DB_USER", DB_USER);
+		DB_PASSWD = configJson.value("DB_PASSWD", DB_PASSWD);
+		DB_TABLE = configJson.value("DB_TABLE", DB_TABLE);
+		DB_PORT = configJson.value("DB_PORT", DB_PORT);
+		SERVICE_PORT = configJson.value("SERVICE_PORT", SERVICE_PORT);
+		MAX_CONNECTION_LIMIT = configJson.value("MAX_CONNECTION_LIMIT", MAX_CONNECTION_LIMIT);
+		CONNECTION_TIMEOUT = configJson.value("CONNECTION_TIMEOUT", CONNECTION_TIMEOUT);
+	}
+	catch (const std::exception &e)
+	{
+		// fprintf(stderr, "설정 파일읽기 오류 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", fileInfo.c_str());
+		spdlog::error("설정파일 읽기 오류 : {} : 비정상 종료", fileInfo);
+		std::exit(EXIT_FAILURE);
+	}
 
-	  printf("[CHECK] DB_PORT : %u\n", DB_PORT);
-	  printf("[CHECK] SERVICE_PORT : %u\n", SERVICE_PORT);
-	  printf("[CHECK] MAX_CONNECTION_LIMIT : %u\n", MAX_CONNECTION_LIMIT);
-	  printf("[CHECK] CONNECTION_TIMEOUT : %u\n", CONNECTION_TIMEOUT);
+	//   printf(">> 설정파일 출력\n");
+	spdlog::info("[CHECK] App Version : {}.{}.{}", APP_VER_MAJOR, APP_VER_MINOR, APP_VER_PATCH);
+	spdlog::info("[CHECK] DB_HOST : {}", DB_HOST);
+	spdlog::info("[CHECK] DB_USER : {}", DB_USER);
+	spdlog::info("[CHECK] DB_PASSWD : {}", DB_PASSWD);
+	spdlog::info("[CHECK] DB_TABLE : {}", DB_TABLE);
 
-	  // 데몬 시작
-	  // startDaemon();
+	spdlog::info("[CHECK] DB_PORT : {}", DB_PORT);
+	spdlog::info("[CHECK] SERVICE_PORT : {}", SERVICE_PORT);
+	spdlog::info("[CHECK] MAX_CONNECTION_LIMIT : {}", MAX_CONNECTION_LIMIT);
+	spdlog::info("[CHECK] CONNECTION_TIMEOUT : {}", CONNECTION_TIMEOUT);
 
-	  /*
-	   * 		MySQL 라이브러리 초기화
-	   */
-	  MYSQL_CONFIG config = {DB_HOST, DB_USER, DB_PASSWD, DB_TABLE, DB_PORT};
-	  DB.Init(config);
+	// 데몬 시작
+	// startDaemon();
 
-	  /*
-	   * 		TCP Service 초기화
-	   */
-	  TCPService SERVER;
-	  SOCKET_INFO info = SERVER.Init(SERVICE_PORT);
+	/*
+	 * 		MySQL 라이브러리 초기화
+	 */
+	MYSQL_CONFIG config = {DB_HOST, DB_USER, DB_PASSWD, DB_TABLE, DB_PORT};
+	DB.Init(config);
 
-	  while (true)
-	  {
-		  // 소켓을 생성한 후 클라이언트 연결을 대기한다.
-		  SOCKET_INFO_CLIENT client_info = SERVER.Listen(info.server_fd, info.sock_len);
+	/*
+	 * 		TCP Service 초기화
+	 */
+	TCPService SERVER;
+	SOCKET_INFO info = SERVER.Init(SERVICE_PORT);
 
-		  // 클라이언트가 Accept 되면 쓰레드 생성 후 분리한다.
-		  pthread_t threads;
-		  SOCKET_INFO_CLIENT *socket_info;
-		  socket_info = (SOCKET_INFO_CLIENT *)malloc(sizeof(SOCKET_INFO_CLIENT));
-		  socket_info->client_fd = client_info.client_fd;
-		  socket_info->client_addr = client_info.client_addr;
-		  pthread_create(&threads, NULL, thread_main, (void *)socket_info);
-		  pthread_detach(threads); // Thread 분리
-	  }
+	while (true)
+	{
+		// 소켓을 생성한 후 클라이언트 연결을 대기한다.
+		SOCKET_INFO_CLIENT client_info = SERVER.Listen(info.server_fd, info.sock_len);
+
+		// 클라이언트가 Accept 되면 쓰레드 생성 후 분리한다.
+		pthread_t threads;
+		SOCKET_INFO_CLIENT *socket_info;
+		socket_info = (SOCKET_INFO_CLIENT *)malloc(sizeof(SOCKET_INFO_CLIENT));
+		socket_info->client_fd = client_info.client_fd;
+		socket_info->client_addr = client_info.client_addr;
+		pthread_create(&threads, NULL, thread_main, (void *)socket_info);
+		pthread_detach(threads); // Thread 분리
+	}
 
 	return 0;
 }
@@ -146,7 +159,7 @@ void *thread_main(void *socket_info)
 
 	// 연결 시 업데이트
 	DB.addEvent("ID_TEST", MYSQL_EVENTS_CONNECTED, inet_ntoa(client_info->client_addr.sin_addr));
-	cout << getDateTime() << " : Client Connected. IP Address is " << inet_ntoa(client_info->client_addr.sin_addr) << endl;
+	spdlog::info("[CHECK] Client Connected. IP Address : {}", inet_ntoa(client_info->client_addr.sin_addr));
 
 	// 데이터 구조체 정의
 	INPUT_DATA inputData;
@@ -174,14 +187,16 @@ void *thread_main(void *socket_info)
 		// 클라이언트의 연결 해제 시 루프 종료
 		if (recv_length == 0)
 		{
-			cout << ">> Client에서 연결 해제 요청" << endl;
+			// cout << ">> Client에서 연결 해제 요청" << endl;
+			spdlog::info("[CHECK] Client에서 연결 해제 요청");
 			break;
 		}
 
 		// Timeout 시 루프 종료
 		if (recv_length == -1)
 		{
-			cout << getDateTime() << " : TCP Timeout!" << endl;
+			// cout << getDateTime() << " : TCP Timeout!" << endl;
+			spdlog::info("[CHECK] TCP Timeout");
 			break;
 		}
 
@@ -194,15 +209,17 @@ void *thread_main(void *socket_info)
 		// 명령 수신 후 파싱 검사
 		if (recv_buffer[0] != 0xFF)
 		{
+			spdlog::info("[CHECK] SoF 실패");
 			sprintf((char *)write_buffer, "SoF 실패\r\n");
 			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
-			printf("SoF 실패\n");
+			// printf("SoF 실패\n");
 			// break;
 			continue;
 		}
 
 		msg = parseMsg(recv_buffer, recv_length);
-		printf("MSG ID(%s) : %02X length %d\r\n", inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
+		// printf("MSG ID(%s) : %02X length %d\r\n", inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
+		spdlog::info("[CHECK] MSG ID ({}) : {:02X} length {}", inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
 
 		// Msg length
 		msg.msg_length = recv_buffer[3];
@@ -219,17 +236,18 @@ void *thread_main(void *socket_info)
 		// Payload Length가 0이상일 때 payload 배열에 복사
 		memcpy(msg.payload, &recv_buffer[4], msg.msg_length);
 
-		printf("[CHECK] Header Payload : ");
-		for (int i = 0; i < 4; i++)
-		{
-			printf("%02X", recv_buffer[i]);
-		}
-		printf(" ");
-		for (int i = 0; i < msg.msg_length; i++)
-		{
-			printf("%02X", msg.payload[i]);
-		}
-		printf("\n");
+		// printf("[CHECK] Header Payload : ");
+		// for (int i = 0; i < 4; i++)
+		// {
+		// 	printf("%02X", recv_buffer[i]);
+		// }
+		// printf(" ");
+		// for (int i = 0; i < msg.msg_length; i++)
+		// {
+		// 	printf("%02X", msg.payload[i]);
+		// }
+		// printf("\n");
+		spdlog::info("[CHECK] Header Payload : {} {}", toHex(recv_buffer, 4), toHex(msg.payload, msg.msg_length));
 
 		// 서버 날짜/시간을 받아옴
 		tm *dateTime = getDateTimeStruct();
@@ -244,19 +262,10 @@ void *thread_main(void *socket_info)
 
 		switch (msg.msg_id)
 		{
+		// ******************************************
+		// 기타
+		// ******************************************
 		case 0x00:
-			sprintf((char *)write_buffer, "%s", inet_ntoa(client_info->client_addr.sin_addr));
-			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
-			break;
-
-		// ******************************************
-		// DB 조회
-		// ******************************************
-		case CTRL_REQUEST_FIRMVER:
-			sprintf((char *)write_buffer, "%s", inet_ntoa(client_info->client_addr.sin_addr));
-			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
-			break;
-		case CTRL_REQUEST_FIRMURL:
 			sprintf((char *)write_buffer, "%s", inet_ntoa(client_info->client_addr.sin_addr));
 			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
 			break;
@@ -281,8 +290,21 @@ void *thread_main(void *socket_info)
 
 			// 메시지 리턴
 			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, write_buffer[3] + 4);
-			printf("[CHECK] dateTime : %d-%02d-%02d %02d:%02d:%02d\n", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
+			// printf("[CHECK] dateTime : %d-%02d-%02d %02d:%02d:%02d\n", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
 
+			spdlog::info("[CHECK] dateTime : {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
+
+			break;
+		// ******************************************
+		// DB 조회
+		// ******************************************
+		case CTRL_REQUEST_FIRMVER:
+			sprintf((char *)write_buffer, "%s", inet_ntoa(client_info->client_addr.sin_addr));
+			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
+			break;
+		case CTRL_REQUEST_FIRMURL:
+			sprintf((char *)write_buffer, "%s", inet_ntoa(client_info->client_addr.sin_addr));
+			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, strlen((char *)write_buffer));
 			break;
 		case CTRL_REQUEST_INPUT_DATA:
 			memset(&inputData, 0x00, sizeof(inputData));
@@ -526,7 +548,8 @@ void *thread_main(void *socket_info)
 			strcpy(inputData.tmp9, "");
 			strcpy(inputData.tmp10, "");
 
-			printf("[CHECK] product_serial_number=%s, date_time=%s, temp=%.1f, hmdty=%.1f, pm25=%.1f, pm10=%.1f, mvmnt=%s, tvoc=%.1f, hcho=%.1f, co2=%.1f, co=%.1f, benzo=%.1f, radon=%.1f, mod_date=%s, reg_date=%s, tmp=%.1f, tmp2=%.1f, tmp3=%.1f, tmp4=%.1f, tmp5=%.1f, tmp6=%s, tmp7=%s, tmp8=%s, tmp9=%s, tmp10=%s\n", inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
+			// printf("[CHECK] product_serial_number=%s, date_time=%s, temp=%.1f, hmdty=%.1f, pm25=%.1f, pm10=%.1f, mvmnt=%s, tvoc=%.1f, hcho=%.1f, co2=%.1f, co=%.1f, benzo=%.1f, radon=%.1f, mod_date=%s, reg_date=%s, tmp=%.1f, tmp2=%.1f, tmp3=%.1f, tmp4=%.1f, tmp5=%.1f, tmp6=%s, tmp7=%s, tmp8=%s, tmp9=%s, tmp10=%s\n", inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
+			spdlog::info("[CHECK] product_serial_number={}, date_time={}, temp={:.1f}, hmdty={:.1f}, pm25={:.1f}, pm10={:.1f}, mvmnt={}, tvoc={:.1f}, hcho={:.1f}, co2={:.1f}, co={:.1f}, benzo={:.1f}, radon={:.1f}, mod_date={}, reg_date={}, tmp={:.1f}, tmp2={:.1f}, tmp3={:.1f}, tmp4={:.1f}, tmp5={:.1f}, tmp6={}, tmp7={}, tmp8={}, tmp9={}, tmp10={}", inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
 
 			// results = DB.addInputData(years, outputData);
 			results = DB.addInputData(years, inputData);
@@ -839,7 +862,7 @@ void *thread_main(void *socket_info)
 
 	// 연결 해제 시 업데이트
 	DB.addEvent("ID_TEST", MYSQL_EVENTS_DISCONNECTED, inet_ntoa(client_info->client_addr.sin_addr));
-	cout << getDateTime() << " : Disconnected. IP Address is " << inet_ntoa(client_info->client_addr.sin_addr) << endl;
+	spdlog::info("[CHECK] Disconnected. IP Address : {}", inet_ntoa(client_info->client_addr.sin_addr));
 
 	// Client FD 닫음
 	if (client_info->client_fd > 0)
