@@ -1,4 +1,5 @@
 // g++ jsonReader.cpp -o jsonReader -std=c++11 && ./jsonReader
+// cd /SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/test/build && cmake .. && make && ./jsonReader
 
 #include <iostream>
 #include <fstream>
@@ -6,6 +7,11 @@
 #include <cstdio>
 // #include <nlohmann/json.hpp>
 #include "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/nlohmann/json.hpp"
+#include <unistd.h>
+#include <limits.h>
+#include <cstdio>
+#include <iostream>
+#include <string>
 
 // 네임스페이스 사용 (편의를 위해)
 using json = nlohmann::json;
@@ -19,9 +25,24 @@ using std::uint32_t;
 
 int main()
 {
+    // std::cout << "Working Directory: " << std::filesystem::current_path() << std::endl;
+    char cwd[PATH_MAX];
+    getcwd(cwd, sizeof(cwd));
+    printf("[CHECK] cwd : %s\n", cwd);
+
+
+    // TEST_PATH
+    
     // const char* filename = "appConfig.json";
     std::string filename = "appConfig.json";
-    // std::string filename = "appConfig2.json";
+
+    // std::string(text);
+    char buffer[PATH_MAX];
+    // snprintf(buffer, sizeof(buffer), "%s/../%s", cwd, filename.c_str());
+    // snprintf(buffer, sizeof(buffer), "%s/%s", cwd, filename.c_str());
+    // std::string fileInfo = std::string(buffer);
+
+    std::string fileInfo = std::string(PRJ_PATH) + "/appConfig.json";
 
     // --- 1. 설정값을 저장할 변수 선언 (기본값 포함) ---
     std::string DB_HOST;
@@ -33,8 +54,9 @@ int main()
     uint32_t MAX_CONNECTION_LIMIT;
     uint32_t CONNECTION_TIMEOUT;
 
-    printf(">> 설정파일 읽기 : %s\n", filename.c_str());
-    std::ifstream configFile(filename);
+    printf(">> 설정파일 읽기 : %s\n", fileInfo.c_str());
+    // printf(">> 설정파일 읽기 : %s\n", fileInfo);
+    std::ifstream configFile(fileInfo);
 
     // --- 2. 파일 읽기 및 JSON 파싱 ---
     if (!configFile.is_open())

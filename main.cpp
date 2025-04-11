@@ -1,3 +1,5 @@
+// cd /SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/build && cmake .. && make && ./SOLARMY_APP
+
 /*
  *	TCP Manager
  */
@@ -45,18 +47,18 @@ int main(int argc, char **argv)
     uint32_t MAX_CONNECTION_LIMIT;
 	uint32_t CONNECTION_TIMEOUT;
 	// const char* filename = "./appConfig.json";
-	std::string filename = "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/appConfig.json";
-	// std::string filename = "./appConfig.json";
+	// std::string fileInfo = "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/appConfig.json";
+	std::string fileInfo = std::string(PRJ_PATH) + "/appConfig.json";
 
 	std::cout << "***** SOLARMY TCP-DB Agent *****" << std::endl;
 	// App Config 파일로부터 설정 파일 읽어옴
-	printf(">> 설정파일 읽기 : %s\n", filename.c_str());
-    std::ifstream configFile(filename);
+	printf(">> 설정파일 읽기 : %s\n", fileInfo.c_str());
+    std::ifstream configFile(fileInfo);
 
 	  // --- 2. 파일 읽기 및 JSON 파싱 ---
 	  if (!configFile.is_open())
 	  {
-		  fprintf(stderr, "설정 파일읽기 실패 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", filename.c_str());
+		  fprintf(stderr, "설정 파일읽기 실패 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", fileInfo.c_str());
 		  std::exit(EXIT_FAILURE);
 	  }
   
@@ -78,7 +80,7 @@ int main(int argc, char **argv)
 	  }
 	  catch (const std::exception &e)
 	  {
-		  fprintf(stderr, "설정 파일읽기 오류 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", filename.c_str());
+		  fprintf(stderr, "설정 파일읽기 오류 : %s을 열 수 없습니다. 프로그램 비정상 종료\n", fileInfo.c_str());
 		  std::exit(EXIT_FAILURE);
 	  }
 
