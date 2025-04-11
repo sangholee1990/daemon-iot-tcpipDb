@@ -59,6 +59,7 @@ int main(int argc, char **argv)
 	uint16_t SERVICE_PORT;
 	uint32_t MAX_CONNECTION_LIMIT;
 	uint32_t CONNECTION_TIMEOUT;
+	
 	// const char* filename = "./appConfig.json";
 	// std::string fileInfo = "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/appConfig.json";
 	std::string fileInfo = std::string(PRJ_PATH) + "/appConfig.json";
