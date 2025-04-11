@@ -554,6 +554,7 @@ void *thread_main(void *socket_info)
 
 			// results = DB.addInputData(years, outputData);
 			results = DB.addInputData(years, inputData);
+			spdlog::info("[CHECK] results : {}", results);
 
 			char tempOutputInput[10];
 			if (results == 0)
@@ -565,7 +566,6 @@ void *thread_main(void *socket_info)
 				// 업데이트 실패
 				strcpy(tempOutputInput, "400");
 			}
-			printf("[CHECK] DB results : %d\n", results);
 
 			TCPClient.write(client_info->client_fd, (uint8_t *)tempOutputInput, strlen((char *)tempOutputInput));
 			break;
