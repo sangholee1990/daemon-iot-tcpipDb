@@ -4,7 +4,10 @@
 #include <iostream>
 #include <string.h>
 #include "Configure.h"
+#include "spdlog/spdlog.h"
+
 using namespace std;
+
 struct SOCKET_INFO
 {
 	size_t server_fd;

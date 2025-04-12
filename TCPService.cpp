@@ -7,8 +7,8 @@ SOCKET_INFO TCPService::Init(uint16_t port)
 	socket_fd = socket(PF_INET, SOCK_STREAM, 0);
 	if (socket_fd == -1)
 	{
-		std::cout << ">> TCP 소켓 생성 실패" << std::endl;
-		exit(0);
+		spdlog::error("TCP 소켓 생성 실패 : 비정상 종료");
+		exit(EXIT_FAILURE);
 	}
 
 	struct sockaddr_in server_addr;
@@ -20,9 +20,11 @@ SOCKET_INFO TCPService::Init(uint16_t port)
 	// 소켓에 주소 할당
 	if (bind(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
 	{
-		std::cout << ">> TCP 소켓 바인딩 실패" << std::endl;
-		exit(1);
+		spdlog::error("TCP 소켓 바인딩 실패 : 비정상 종료", socket_fd);
+		exit(EXIT_FAILURE);
 	}
+
+	spdlog::info("TCP 소켓 생성 : {}", port);
 
 	SOCKET_INFO info = {
 		socket_fd,
@@ -35,37 +37,49 @@ SOCKET_INFO_CLIENT TCPService::Listen(size_t server_fd, socklen_t sock_len)
 {
 	uint16_t client_number = 0;
 	sockaddr_in client_addr;
-	std::cout << ">> 새 클라이언트 연결 대기중..." << std::endl;
+
 	if (listen(server_fd, MAX_CLIENT_NO) == -1)
 	{
-		std::cout << ">> 클라이언트 연결 실패..." << std::endl;
+		spdlog::error("클라이언트 연결 대기 실패");
 	}
-	else
+
+	spdlog::info("클라이언트 연결 대기중");
+
+	client_number = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&sock_len);
+
+	if (client_number == -1)
 	{
-		client_number = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&sock_len);
-		std::cout << ">> 새 클라이언트가 연결되었습니다." << std::endl;
+		spdlog::error("클라이언트 연결 실패");
 	}
-	SOCKET_INFO_CLIENT info = {
-		client_number,
-		client_addr};
+
+	spdlog::info("신규 클라이언트 연결 완료 : {}", client_number);
+
+	SOCKET_INFO_CLIENT info = {client_number, client_addr};
 	return info;
 }
 
 void TCPService::close(size_t client_fd)
 {
 	close(client_fd);
+	spdlog::info("클라이언트 소켓 해제 : {}", client_fd);
 }
 
 int32_t TCPService::receive(size_t client_fd, uint8_t *recv_buffer)
 {
 	int32_t recv_length = 0;
 	recv_length = recv(client_fd, recv_buffer, RECV_BUFFER_SIZE, 0);
+	
+	// spdlog::info("데이터 수신 완료 : {}", recv_length);
+
 	return recv_length;
 }
 
 int32_t TCPService::write(size_t client_fd, uint8_t *write_buffer, size_t len)
 {
 	int32_t sent_len = send(client_fd, write_buffer, len, 0);
+
+	// spdlog::info("데이터 송신 완료 : {}", sent_len);
+
 	return sent_len;
 }
 
@@ -80,5 +94,6 @@ int32_t TCPService::execute(size_t client_fd, uint16_t msg_id)
 	buffer[4] = (checksum >> 8) & 0xFF;
 	buffer[5] = checksum & 0xFF;
 	int32_t sent_len = send(client_fd, buffer, 6, 0);
+	
 	return sent_len;
 }
