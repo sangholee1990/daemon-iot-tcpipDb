@@ -225,7 +225,7 @@ void *thread_main(void *socket_info)
 		msg = parseMsg(recv_buffer, recv_length);
 		// printf("MSG ID(%s) : %02X length %d\r\n", inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
 		// spdlog::info("[CHECK] MSG ID ({}) : {:02X} length {}", inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
-		spdlog::info("[{}][{}][{}][{}]", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
+		// spdlog::info("[{}][{}][{}][{}]", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length);
 
 		// Msg length
 		msg.msg_length = recv_buffer[3];
@@ -299,7 +299,6 @@ void *thread_main(void *socket_info)
 			TCPClient.write(client_info->client_fd, (uint8_t *)write_buffer, write_buffer[3] + 4);
 			// printf("[CHECK] dateTime : %d-%02d-%02d %02d:%02d:%02d\n", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
 
-			// spdlog::info("[CHECK] dateTime : {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
 			spdlog::info("[{}][{}][{}][{}] result : {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length, dateTime->tm_year + 1900, dateTime->tm_mon + 1, dateTime->tm_mday, dateTime->tm_hour, dateTime->tm_min, dateTime->tm_sec);
 
 			break;
@@ -535,9 +534,6 @@ void *thread_main(void *socket_info)
 			strcpy(inputData.tmp8, "");
 			strcpy(inputData.tmp9, "");
 			strcpy(inputData.tmp10, "");
-
-			// printf("[CHECK] product_serial_number=%s, date_time=%s, temp=%.1f, hmdty=%.1f, pm25=%.1f, pm10=%.1f, mvmnt=%s, tvoc=%.1f, hcho=%.1f, co2=%.1f, co=%.1f, benzo=%.1f, radon=%.1f, mod_date=%s, reg_date=%s, tmp=%.1f, tmp2=%.1f, tmp3=%.1f, tmp4=%.1f, tmp5=%.1f, tmp6=%s, tmp7=%s, tmp8=%s, tmp9=%s, tmp10=%s\n", inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
-			// spdlog::info("[CHECK] product_serial_number={}, date_time={}, temp={:.1f}, hmdty={:.1f}, pm25={:.1f}, pm10={:.1f}, mvmnt={}, tvoc={:.1f}, hcho={:.1f}, co2={:.1f}, co={:.1f}, benzo={:.1f}, radon={:.1f}, mod_date={}, reg_date={}, tmp={:.1f}, tmp2={:.1f}, tmp3={:.1f}, tmp4={:.1f}, tmp5={:.1f}, tmp6={}, tmp7={}, tmp8={}, tmp9={}, tmp10={}", inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
 
 			spdlog::info("[{}][{}][{}][{}] product_serial_number={}, date_time={}, temp={:.1f}, hmdty={:.1f}, pm25={:.1f}, pm10={:.1f}, mvmnt={}, tvoc={:.1f}, hcho={:.1f}, co2={:.1f}, co={:.1f}, benzo={:.1f}, radon={:.1f}, mod_date={}, reg_date={}, tmp={:.1f}, tmp2={:.1f}, tmp3={:.1f}, tmp4={:.1f}, tmp5={:.1f}, tmp6={}, tmp7={}, tmp8={}, tmp9={}, tmp10={}", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr), msg.msg_id, msg.msg_length, inputData.product_serial_number, inputData.date_time, inputData.temp, inputData.hmdty, inputData.pm25, inputData.pm10, inputData.mvmnt, inputData.tvoc, inputData.hcho, inputData.co2, inputData.co, inputData.benzo, inputData.radon, inputData.mod_date, inputData.reg_date, inputData.tmp, inputData.tmp2, inputData.tmp3, inputData.tmp4, inputData.tmp5, inputData.tmp6, inputData.tmp7, inputData.tmp8, inputData.tmp9, inputData.tmp10);
 
@@ -846,7 +842,7 @@ void *thread_main(void *socket_info)
 	// 연결 해제 시 업데이트
 	DB.addEvent("ID_TEST", MYSQL_EVENTS_DISCONNECTED, inet_ntoa(client_info->client_addr.sin_addr));
 	// spdlog::info("[CHECK] Disconnected. IP Address : {}", inet_ntoa(client_info->client_addr.sin_addr));
-	spdlog::info("[{}][{}] Disconnected. IP Address", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr));
+	spdlog::info("[{}][{}] Client Disconnected.", client_info->client_fd, inet_ntoa(client_info->client_addr.sin_addr));
 
 	// Client FD 닫음
 	if (client_info->client_fd > 0)
