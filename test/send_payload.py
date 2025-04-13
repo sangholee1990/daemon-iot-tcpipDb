@@ -15,9 +15,9 @@ EXPECTED_HEADER = b'\x00\x03\x07'
 PACKET_LENGTH = 11
 
 # 정상
-#hex_payload = 'FF00308207E84244574944452D30303333662D303561333737363739362D3839666634342D623762336563302D64333034303365343236323032352D30312D30312031303A30303A303041C1999A42B066664129999A4019999A6D6F76656D656E740000000000000000000000004090000042C8CCCD4039999A4290333341B2666642606666'
+hex_payload = 'FF00308207E84244574944452D30303333662D303561333737363739362D3839666634342D623762336563302D64333034303365343236323032352D30312D30312031303A30303A303041C1999A42B066664129999A4019999A6D6F76656D656E740000000000000000000000004090000042C8CCCD4039999A4290333341B2666642606666'
 
-hex_payload = 'FF000300'
+#hex_payload = 'FF000300'
 
 
 
@@ -122,9 +122,9 @@ try:
         if received_data:
             # print(f"Received: {received_data.hex().upper()}")
             
-            #decoded_info = received_data.decode('ascii')
+            decoded_info = received_data.decode('ascii')
 
-            decoded_info = decode_timestamp_packet(received_data)
+            #decoded_info = decode_timestamp_packet(received_data)
             print(f"Response Text: {received_data}")
             print(f"Response Text: {decoded_info}")
         else:
