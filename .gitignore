@@ -4,4 +4,4 @@
 # /main.cpp
 /test/build
 /test/jsonReader
-appConfig.json
+!appConfig.json
