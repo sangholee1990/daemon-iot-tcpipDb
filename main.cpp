@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
 	// const char* filename = "./appConfig.json";
 	// std::string fileInfo = "/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB/appConfig.json";
-	std::string fileInfo = std::string(PRJ_PATH) + "/appConfig.json";
+	std::string fileInfo = std::string(PRJ_PATH) + "/config/appConfig.json";
 
 	spdlog::info("***** SOLARMY TCP-DB Agent *****");
 	std::ifstream configFile(fileInfo);
