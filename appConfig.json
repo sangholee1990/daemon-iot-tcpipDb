@@ -1,7 +1,7 @@
 {
     "DB_HOST": "localhost",
     "DB_USER": "root",
-    "DB_PASSWD": "Bdwide365!@",
+    "DB_PASSWD": "",
     "DB_TABLE": "DMS02",
     "DB_PORT": 3306,
     "SERVICE_PORT": 9999,
