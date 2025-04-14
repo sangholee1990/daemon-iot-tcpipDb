@@ -1,7 +1,7 @@
+/config
 /build
 /cmake_install.cmake
 /jsonReader
 # /main.cpp
 /test/build
 /test/jsonReader
-!appConfig.json
