@@ -41,6 +41,7 @@ struct CONN_LOG
 struct INPUT_DATA
 {
 	char product_serial_number[60];
+	// char product_serial_number[12];
 	char date_time[30];
 	float temp;
 	float hmdty;

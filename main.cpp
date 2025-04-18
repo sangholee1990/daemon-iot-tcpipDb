@@ -474,14 +474,17 @@ void *thread_main(void *socket_info)
 			// printf("[CHECK] years : %u\n", years);
 
 			memcpy(inputData.product_serial_number, &msg.payload[2], 49);
+			// memcpy(inputData.product_serial_number, &msg.payload[2], 12);
 			// printf("[CHECK] inputData.product_serial_number : %s\n", inputData.product_serial_number);
 
 			memcpy(inputData.date_time, &msg.payload[51], 19);
+			// memcpy(inputData.date_time, &msg.payload[14], 19);
 			// printf("[CHECK] inputData.date_time : %s\n", inputData.date_time);
 
 			// 동적 처리
 			uint32_t tmpInt;
 			offset = 70;
+			// offset = 31;
 			tmpInt = (msg.payload[offset] << 24) | (msg.payload[offset + 1] << 16) | (msg.payload[offset + 2] << 8) | (msg.payload[offset + 3] & 0xFF);
 			memcpy(&inputData.temp, &tmpInt, 4);
 
