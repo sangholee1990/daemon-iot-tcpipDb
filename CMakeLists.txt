@@ -12,7 +12,8 @@ add_executable(${CMAKE_PROJECT_NAME} main.cpp MySQLService.cpp TCPService.cpp)
 # 의존성 라이브러리 찾기
 include(FindPkgConfig)
 
-pkg_check_modules(MySQL REQUIRED mysqlclient>=5.7)
+# find_package(MySQL REQUIRED)
+pkg_check_modules(MYSQL REQUIRED mysqlclient>=5.7)
 if(MYSQL_FOUND)
     message(STATUS "MYSQL_INCLUDE_DIRS (pkg-config): ${MYSQL_INCLUDE_DIRS}")
     message(STATUS "MYSQL_LIBRARIES (pkg-config): ${MYSQL_LIBRARIES}")
@@ -27,7 +28,7 @@ else()
 endif()
 
 find_package(Threads REQUIRED)
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE  ${MySQL_INCLUDE_DIRS})
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${MySQL_INCLUDE_DIRS})
 
 find_package(CURL REQUIRED)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CURL_INCLUDE_DIRS})
@@ -37,5 +38,5 @@ find_package(spdlog REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE spdlog::spdlog)
 
 # 컴파일 정의
-set(PRJ_PATH "/HDD/SYSTEMS/IOT/Roverdyn/PROJ_TCP_DB")
+set(PRJ_PATH "/HDD/SYSTEMS/IOT/Roverdyn/daemon-iot-tcpipDb")
 add_compile_definitions(PRJ_PATH="${PRJ_PATH}")
